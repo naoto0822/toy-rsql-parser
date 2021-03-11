@@ -1,11 +1,12 @@
-use std::collections::HashMap;
+use crate::token::{Token, TokenType, lookup_ident};
 
 pub struct Lexer {
     query: String,
     query_length: u8,
     current_position: u8,
     next_position: u8,
-    current_char: char
+    current_char: char,
+    is_plus_one: bool,
 }
 
 impl Lexer {
@@ -19,8 +20,10 @@ impl Lexer {
             current_position: 0,
             next_position: 0,
             current_char: default_cahr,
+            is_plus_one: false,
         };
 
+        // to first char
         lexer.read_char();
 
         lexer
@@ -28,6 +31,7 @@ impl Lexer {
 
     fn read_char(&mut self) {
         if self.next_position >= self.query_length {
+            // '0' is EOF
             self.current_char = '0';
         } else {
             let current_char = self.query.as_bytes()[self.next_position as usize];
@@ -35,8 +39,7 @@ impl Lexer {
         }
 
         self.current_position = self.next_position;
-        let plus_one: u8 = 1;
-        self.next_position += plus_one;
+        self.next_position += 1;
     }
 
     fn read_identifier(&mut self) -> String {
@@ -68,6 +71,7 @@ impl Lexer {
             '0' => Token::new(TokenType::EOF, "".to_string()),
             _ => {
                 if self.current_char.is_ascii_alphabetic() {
+                    self.is_plus_one = true;
                     let ident = self.read_identifier();
                     let token_type = lookup_ident(ident.clone());
                     Token::new(token_type, ident.clone())
@@ -76,6 +80,12 @@ impl Lexer {
                 }
             }
         };
+
+        // position is plus on when token is identifier, number...
+        if self.is_plus_one {
+            self.is_plus_one = false;
+            return token;
+        }
 
         self.read_char();
         token
@@ -93,59 +103,5 @@ impl Lexer {
 
     pub fn dump_raw_query(self) {
         println!("query: {}", self.query)
-    }
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum TokenType {
-    Start, // Start
-    Illegal, // Illegal
-    EOF, // EOF
-    Ast, // *
-    Comma, //
-    Lparen, // (
-    Rparen, // )
-    SemiColon, // ;
-    Select, // SELECT
-    FromTable, // FROM
-    Where, // WHERE
-    Ident, // Identifier
-}
-
-fn lookup_ident(ident: String) -> TokenType {
-    let mut keywords = HashMap::new();
-    keywords.insert("SELECT", TokenType::Select);
-    keywords.insert("FROM", TokenType::FromTable);
-    keywords.insert("WHERE", TokenType::Where);
-
-    match keywords.get(ident.as_str()) {
-        Some(v) => {
-            v.clone()
-        },
-        None => {
-            TokenType::Ident
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct Token {
-    pub token_type: TokenType,
-    pub literal: String,
-}
-
-impl Token {
-    pub fn start_token() -> Token {
-        Token{
-            token_type: TokenType::Start,
-            literal: "".to_string(),
-        }
-    }
-
-    pub fn new(token_type: TokenType, literal: String) -> Token {
-        Token{
-            token_type,
-            literal,
-        }
     }
 }
