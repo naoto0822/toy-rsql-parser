@@ -86,6 +86,10 @@ impl Lexer {
                     let ident = self.read_identifier();
                     let token_type = Token::lookup_ident(ident.clone());
                     Token::new(token_type)
+                } else if self.current_char.is_ascii_digit() {
+                    self.is_peek_position = true;
+                    let number = self.read_number();
+                    Token::new(TokenType::Number(number))
                 } else {
                     Token::new(TokenType::Illegal(self.current_char.to_string()))
                 }
@@ -154,9 +158,24 @@ impl Lexer {
         return false
     }
 
-    // TODO: is never used
-    fn read_number() -> i64 {
-        return 0
+    fn read_number(&mut self) -> i64 {
+        let position = self.current_position;
+        while self.current_char.is_ascii_digit() {
+            self.read_char();
+        }
+
+        // FIXME: like index range access...  query[position:self.current_position]
+        let cap = self.current_position - position;
+        let mut collected: Vec<u8> = Vec::with_capacity(cap as usize);
+        for (i, q) in self.query.as_bytes().iter().enumerate() {
+            if position <= i && i < self.current_position {
+                collected.push(q.clone());
+            }
+        }
+
+        // TODO: error handling
+        let joined = String::from_utf8(collected).unwrap();
+        joined.parse::<i64>().unwrap()
     }
 
     fn skip_whitespace(&mut self) {
