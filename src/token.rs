@@ -7,9 +7,9 @@ pub const CHAR_EOF: char = '0';
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TokenType {
     // System Type
-    Start,   // Start
+    Start,           // Start
     Illegal(String), // Illegal
-    EOF,     // EOF
+    EOF,             // EOF
 
     // Spacecial Char
     DoubleQuote, // "
@@ -44,14 +44,14 @@ pub enum TokenType {
     InnerJoin, // INNER
     LeftJoin,  // LEFT,
     RightJoin, // RIGHT
-    Is, // IS
-    Not, // NOT
-    NULL, // NULL
+    Is,        // IS
+    Not,       // NOT
+    NULL,      // NULL
 
     // Latter, Number,,,
     Ident(String), // a~z, A~Z, 0~9
     Number(i64),   // 0 ~9
-    Bool(bool), // true or false
+    Bool(bool),    // true or false
 }
 
 pub type Token = Annot<TokenType>;

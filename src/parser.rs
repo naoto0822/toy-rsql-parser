@@ -1,6 +1,6 @@
+use crate::ast::{Column, Statement, TableExpression, ValueExpression};
 use crate::lexer::Lexer;
 use crate::token::{Token, TokenType};
-use crate::ast::{Statement, Column, TableExpression, ValueExpression};
 
 pub struct Parser {
     lexer: Lexer,
@@ -13,7 +13,7 @@ impl Parser {
         let current_token = Token::start_token();
         let peek_token = Token::start_token();
 
-        let mut p = Self{
+        let mut p = Self {
             lexer,
             current_token,
             peek_token,
@@ -44,10 +44,8 @@ impl Parser {
         match next_token {
             Some(tk) => {
                 self.peek_token = tk;
-            },
-            None => {
-                panic!("not expected None")
             }
+            None => panic!("not expected None"),
         }
     }
 
@@ -71,12 +69,8 @@ impl Parser {
 
     fn parse_statement(&mut self) -> Statement {
         match self.current_token.value {
-            TokenType::Select => {
-                self.parse_select_statement()
-            },
-            _ => {
-                panic!("not supported statement!")
-            }
+            TokenType::Select => self.parse_select_statement(),
+            _ => panic!("not supported statement!"),
         }
     }
 
@@ -95,10 +89,7 @@ impl Parser {
             self.next_token();
         }
 
-        Statement::Select{
-            columns,
-            table,
-        }
+        Statement::Select { columns, table }
     }
 
     // TODO: alias
@@ -106,7 +97,7 @@ impl Parser {
         let mut columns = vec![];
 
         let first_expr = self.parse_value_expression();
-        let first_column = Column{
+        let first_column = Column {
             value: first_expr,
             alias: "".to_string(),
         };
@@ -117,7 +108,7 @@ impl Parser {
             self.next_token();
 
             let next_expr = self.parse_value_expression();
-            let next_column = Column{
+            let next_column = Column {
                 value: next_expr,
                 alias: "".to_string(),
             };
@@ -132,36 +123,28 @@ impl Parser {
             TokenType::Ident(_) => self.parse_identifier(),
             TokenType::Number(_) => self.parse_number(),
             TokenType::Bool(_) => self.parse_bool(),
-            _ => {
-                panic!("not expected tyep!")
-            }
+            _ => panic!("not expected tyep!"),
         }
     }
 
     fn parse_identifier(&mut self) -> ValueExpression {
         match &self.current_token.value {
             TokenType::Ident(ident) => ValueExpression::Identifier(ident.to_string()),
-            _ => {
-                panic!("not expected type!")
-            }
+            _ => panic!("not expected type!"),
         }
     }
 
     fn parse_number(&mut self) -> ValueExpression {
         match self.current_token.value {
             TokenType::Number(num) => ValueExpression::Number(num),
-            _ => {
-                panic!("not expected type!")
-            }
+            _ => panic!("not expected type!"),
         }
     }
 
     fn parse_bool(&mut self) -> ValueExpression {
         match self.current_token.value {
             TokenType::Bool(b) => ValueExpression::Bool(b),
-            _ => {
-                panic!("not expected type!")
-            }
+            _ => panic!("not expected type!"),
         }
     }
 
@@ -170,17 +153,12 @@ impl Parser {
         self.next_token();
 
         match &self.current_token.value {
-            TokenType::Ident(table_name) => {
-                TableExpression{
-                    from: table_name.to_string(),
-                    where_cond: None,
-                    group_by: None,
-                }
+            TokenType::Ident(table_name) => TableExpression {
+                from: table_name.to_string(),
+                where_cond: None,
+                group_by: None,
             },
-            _ => {
-                panic!("not expected type!")
-            }
+            _ => panic!("not expected type!"),
         }
     }
 }
-

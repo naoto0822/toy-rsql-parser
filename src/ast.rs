@@ -1,9 +1,12 @@
+use crate::token::Token;
 use std::fmt;
-use crate::token::{Token};
 
 #[derive(Debug, Clone)]
 pub enum Statement {
-    Select{columns: Vec<Column>, table: TableExpression}
+    Select {
+        columns: Vec<Column>,
+        table: TableExpression,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -24,7 +27,7 @@ pub struct Column {
 #[derive(Debug, Clone)]
 pub enum Prefix {
     Plus,
-    Minus
+    Minus,
 }
 
 #[derive(Debug, Clone)]
@@ -42,7 +45,7 @@ pub enum Infix {
 
 #[derive(Debug, Clone)]
 pub struct TableExpression {
-   pub from: String,
-   pub where_cond: Option<ValueExpression>,
-   pub group_by: Option<Vec<Column>>
+    pub from: String,
+    pub where_cond: Option<ValueExpression>,
+    pub group_by: Option<Vec<Column>>,
 }

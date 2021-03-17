@@ -37,7 +37,7 @@ impl Lexer {
                 TokenType::EOF => break,
                 TokenType::Illegal(c) => {
                     return Err(LexError::invalid_char(c));
-                },
+                }
                 _ => {
                     tokens.push(tk);
                 }
@@ -132,7 +132,7 @@ impl Lexer {
 
     // TODO: is never used
     fn is_letter() -> bool {
-        return false
+        return false;
     }
 
     fn read_identifier(&mut self) -> String {
@@ -155,7 +155,7 @@ impl Lexer {
 
     // TODO: is never used
     fn is_number() -> bool {
-        return false
+        return false;
     }
 
     fn read_number(&mut self) -> i64 {
