@@ -1,13 +1,11 @@
 use toy_rsql_parser::lexer::Lexer;
+use toy_rsql_parser::parser::Parser;
 
 fn main() {
-    println!("Start Lexer!");
-
-    let query = String::from("SELECT * FROM user WHERE id = 1;");
+    let query = String::from("SELECT id FROM user;");
     println!("query: {}", query);
-    let mut lexer = Lexer::new(query);
-    let tokens = lexer.get_tokens();
-    println!("tokens: {:?}", tokens);
-
-    println!("End Lexer!");
+    let lexer = Lexer::new(query);
+    let mut parser = Parser::new(lexer);
+    let stmts = parser.parse();
+    println!("ast: {:?}", stmts);
 }

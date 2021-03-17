@@ -4,7 +4,7 @@ use std::collections::HashMap;
 pub const CHAR_ZERO_VALUE: char = 0 as char;
 pub const CHAR_EOF: char = '0';
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TokenType {
     // System Type
     Start,   // Start
@@ -51,6 +51,7 @@ pub enum TokenType {
     // Latter, Number,,,
     Ident(String), // a~z, A~Z, 0~9
     Number(i64),   // 0 ~9
+    Bool(bool), // true or false
 }
 
 pub type Token = Annot<TokenType>;
