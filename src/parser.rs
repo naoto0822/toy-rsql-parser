@@ -2,6 +2,15 @@ use crate::ast::{Column, Statement, TableExpression, ValueExpression};
 use crate::lexer::Lexer;
 use crate::token::{Token, TokenType};
 
+enum PrecedenceType {
+    LOWEAT = 1,
+    EQUALS = 2, // ==
+    LESSGREATER = 3, // > or <
+    SUM = 4, // +
+    PRODUCT = 5, // *
+    PREFIX = 6, // -X or +X
+}
+
 pub struct Parser {
     lexer: Lexer,
     current_token: Token,
@@ -160,5 +169,9 @@ impl Parser {
             },
             _ => panic!("not expected type!"),
         }
+    }
+
+    fn lookup_precedence(&self, token_type: TokenType) -> i64 {
+        // TODO: refactor
     }
 }
