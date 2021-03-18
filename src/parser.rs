@@ -4,11 +4,11 @@ use crate::token::{Token, TokenType};
 
 enum PrecedenceType {
     LOWEAT = 1,
-    EQUALS = 2, // ==
+    EQUALS = 2,      // ==
     LESSGREATER = 3, // > or <
-    SUM = 4, // +
-    PRODUCT = 5, // *
-    PREFIX = 6, // -X or +X
+    SUM = 4,         // +
+    PRODUCT = 5,     // *
+    PREFIX = 6,      // -X or +X
 }
 
 pub struct Parser {
