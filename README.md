@@ -6,7 +6,7 @@ toy SQL parser written in Rust. (ongoing)
 
 ## Lexer
 
-```rs
+```rust
 // input query
 SELECT * FROM user WHERE id = 1;
 
@@ -26,7 +26,7 @@ SELECT * FROM user WHERE id = 1;
 
 ## Parser
 
-```rs
+```rust
 // input query
 SELECT 1+1+2, id, name FROM user WHERE id = 1;
 
