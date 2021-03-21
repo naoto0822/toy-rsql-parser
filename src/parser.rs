@@ -1,15 +1,16 @@
-use crate::ast::{Column, Statement, TableExpression, ValueExpression};
+use crate::ast::{Column, InfixOp, PrefixOp, Statement, TableExpression, ValueExpression};
 use crate::lexer::Lexer;
 use crate::token::{Token, TokenType};
+use std::collections::HashMap;
 
-enum PrecedenceType {
-    LOWEAT = 1,
-    EQUALS = 2,      // ==
-    LESSGREATER = 3, // > or <
-    SUM = 4,         // +
-    PRODUCT = 5,     // *
-    PREFIX = 6,      // -X or +X
-}
+static LOWEAT: i64 = 1;
+static OR: i64 = 2; // OR
+static AND: i64 = 3; // AND
+static EQUALS: i64 = 4; // ==
+static LESSGREATER: i64 = 5; // > or <
+static SUM: i64 = 6; // +
+static PRODUCT: i64 = 7; // *
+static PREFIX: i64 = 8; // -X or +X
 
 pub struct Parser {
     lexer: Lexer,
@@ -105,7 +106,7 @@ impl Parser {
     fn parse_columns(&mut self) -> Vec<Column> {
         let mut columns = vec![];
 
-        let first_expr = self.parse_value_expression();
+        let first_expr = self.parse_value_expression(LOWEAT);
         let first_column = Column {
             value: first_expr,
             alias: "".to_string(),
@@ -116,7 +117,7 @@ impl Parser {
             self.next_token();
             self.next_token();
 
-            let next_expr = self.parse_value_expression();
+            let next_expr = self.parse_value_expression(LOWEAT);
             let next_column = Column {
                 value: next_expr,
                 alias: "".to_string(),
@@ -127,12 +128,63 @@ impl Parser {
         columns
     }
 
-    fn parse_value_expression(&mut self) -> ValueExpression {
+    fn parse_value_expression(&mut self, precedence: i64) -> ValueExpression {
+        let mut left = self.parse_prefix_value_expression();
+
+        while !self.is_peek_token(TokenType::SemiColon)
+            && precedence < self.lookup_precedence(self.peek_token.value.clone())
+        {
+            let mut infix = self.parse_infix_value_expression(left.clone());
+            match infix {
+                Some(v) => {
+                    left = v.clone();
+                }
+                None => {
+                    return left.clone();
+                }
+            }
+        }
+
+        left
+    }
+
+    fn parse_prefix_value_expression(&mut self) -> ValueExpression {
         match self.current_token.value {
             TokenType::Ident(_) => self.parse_identifier(),
             TokenType::Number(_) => self.parse_number(),
             TokenType::Bool(_) => self.parse_bool(),
             _ => panic!("not expected tyep!"),
+        }
+    }
+
+    // TODO
+    fn parse_infix_value_expression(&mut self, left: ValueExpression) -> Option<ValueExpression> {
+        match self.peek_token.value {
+            TokenType::Plus
+            | TokenType::Minus
+            | TokenType::Slash
+            | TokenType::Ast
+            | TokenType::EqOp
+            | TokenType::LessOp
+            | TokenType::GreaterOp => {
+                self.next_token();
+                Some(self.parse_infix_expression(left))
+            }
+            _ => None,
+        }
+    }
+
+    fn parse_infix_expression(&mut self, left: ValueExpression) -> ValueExpression {
+        let op = self.lookup_infix(self.current_token.value.clone());
+
+        let precedence = self.lookup_precedence(self.current_token.value.clone());
+        self.next_token();
+
+        let right = self.parse_value_expression(precedence);
+        ValueExpression::Infix {
+            op,
+            left: Box::new(left),
+            right: Box::new(right),
         }
     }
 
@@ -161,17 +213,69 @@ impl Parser {
     fn parse_table_expression(&mut self) -> TableExpression {
         self.next_token();
 
-        match &self.current_token.value {
-            TokenType::Ident(table_name) => TableExpression {
-                from: table_name.to_string(),
-                where_cond: None,
-                group_by: None,
-            },
+        let table_name = match &self.current_token.value {
+            TokenType::Ident(table_name) => table_name.clone(),
             _ => panic!("not expected type!"),
+        };
+
+        let where_cond = if self.expect_peek(TokenType::Where) {
+            self.next_token();
+            Some(self.parse_value_expression(LOWEAT))
+        } else {
+            None
+        };
+
+        TableExpression {
+            from: table_name.to_string(),
+            where_cond: where_cond,
+            group_by: None,
         }
     }
 
     fn lookup_precedence(&self, token_type: TokenType) -> i64 {
-        // TODO: refactor
+        // TODO: define global var
+        let mut ps = HashMap::new();
+
+        ps.insert(TokenType::EqOp, EQUALS);
+        // TODO: NOTEQ
+        ps.insert(TokenType::LessOp, LESSGREATER);
+        ps.insert(TokenType::GreaterOp, LESSGREATER);
+        ps.insert(TokenType::Plus, SUM);
+        ps.insert(TokenType::Minus, SUM);
+        // TODO: slash
+        ps.insert(TokenType::Ast, PRODUCT);
+
+        match ps.get(&token_type) {
+            Some(v) => v.clone(),
+            None => 0,
+        }
+    }
+
+    fn lookup_prefix(&self, token_type: TokenType) -> PrefixOp {
+        let mut p = HashMap::new();
+        p.insert(TokenType::Plus, PrefixOp::Plus);
+        p.insert(TokenType::Minus, PrefixOp::Minus);
+
+        match p.get(&token_type) {
+            Some(v) => v.clone(),
+            None => panic!("not expected type!"),
+        }
+    }
+
+    fn lookup_infix(&self, token_type: TokenType) -> InfixOp {
+        let mut i = HashMap::new();
+        i.insert(TokenType::EqOp, InfixOp::Eq);
+        i.insert(TokenType::Plus, InfixOp::Plus);
+        i.insert(TokenType::Minus, InfixOp::Minus);
+        i.insert(TokenType::Ast, InfixOp::Ast);
+        i.insert(TokenType::Slash, InfixOp::Slash);
+        i.insert(TokenType::Bang, InfixOp::Bang);
+        i.insert(TokenType::LessOp, InfixOp::Lt);
+        i.insert(TokenType::GreaterOp, InfixOp::Gt);
+
+        match i.get(&token_type) {
+            Some(v) => v.clone(),
+            None => panic!("not expected type!"),
+        }
     }
 }

@@ -1,6 +1,3 @@
-use crate::token::Token;
-use std::fmt;
-
 #[derive(Debug, Clone)]
 pub enum Statement {
     Select {
@@ -14,8 +11,15 @@ pub enum ValueExpression {
     Identifier(String),
     Number(i64),
     Bool(bool),
-    // Prefix,
-    // Infix
+    Prefix {
+        op: PrefixOp,
+        right: i64,
+    }, // TODO: right to Box<Expr>
+    Infix {
+        op: InfixOp,
+        left: Box<ValueExpression>,
+        right: Box<ValueExpression>,
+    }, // TODO: right, left to Box<Expr>
 }
 
 #[derive(Debug, Clone)]
@@ -25,13 +29,13 @@ pub struct Column {
 }
 
 #[derive(Debug, Clone)]
-pub enum Prefix {
+pub enum PrefixOp {
     Plus,
     Minus,
 }
 
 #[derive(Debug, Clone)]
-pub enum Infix {
+pub enum InfixOp {
     Plus,
     Minus,
     Ast,

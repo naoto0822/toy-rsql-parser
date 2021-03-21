@@ -4,7 +4,7 @@ use std::collections::HashMap;
 pub const CHAR_ZERO_VALUE: char = 0 as char;
 pub const CHAR_EOF: char = '0';
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum TokenType {
     // System Type
     Start,           // Start
@@ -35,6 +35,8 @@ pub enum TokenType {
     LeftBrace,   // {
     RightBrace,  // }
     DollerSign,  // $
+    Bang,        // !
+    Slash,       // /
 
     // Reserved Word
     Select,    // SELECT
