@@ -6,7 +6,7 @@ toy SQL parser written in Rust. (ongoing)
 
 ## Lexer
 
-```
+```rs
 // input query
 SELECT * FROM user WHERE id = 1;
 
@@ -24,8 +24,58 @@ SELECT * FROM user WHERE id = 1;
 ]
 ```
 
+## Parser
+
+```rs
+// input query
+SELECT 1+1+2, id, name FROM user WHERE id = 1;
+
+// output AST
+Select { 
+  columns: [
+    Column { 
+      value: Infix { 
+        op: Plus, 
+        left: Infix { 
+          op: Plus, 
+          left: Number(1), 
+          right: Number(1) 
+        }, 
+        right: Number(2)
+      }, alias: ""
+    }, 
+    Column {
+      value: Identifier("id"), 
+      alias: ""
+    }, 
+    Column { 
+      value: Identifier("name"), 
+      alias: ""
+    }
+  ], 
+  table: TableExpression { 
+    from: "user", 
+    where_cond: Some(
+      Infix { 
+        op: Eq,
+        left: Identifier("id"),
+        right: Number(1)
+      }
+    ), 
+    group_by: None 
+  } 
+}
+```
+
 ## Features
 
-- [x] Minimum lexer
+- [x] Minimum Lexer
+- [x] Minimum Parser
 - [ ] Lexer
-- [ ] Parser
+- [ ] DML Parse
+  - [ ] SELECT
+  - [ ] INSERT
+  - [ ] UPDATE
+  - [ ] DELETE
+- [ ] DDL Parse
+- [ ] DCL Parse
